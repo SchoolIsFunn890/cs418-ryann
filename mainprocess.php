@@ -1,68 +1,74 @@
 <?php
-    $email = $_POST["email"];
-    $password = $_POST["password"];
+session_start();
 
-    $checker = 0;
+$email = $_POST["email"];
+$password = $_POST["password"];
 
-    $db = new SQLite3('database.db');
-    //admin
-    $stmt = $db->prepare("SELECT email, password FROM admin WHERE email = :email");
-    $stmt->bindValue(':email', $email, SQLITE3_TEXT);
-    $resultForAdmin = $stmt->execute()->fetchArray(SQLITE3_ASSOC);
+$connection = new mysqli(
+    "sql202.infinityfree.com",  
+    "if0_41571960",             
+    "athEOCnHsx9DWn",            
+    "if0_41571960_database"      
+);
 
-    if ($resultForAdmin) { 
-        $hash = $resultForAdmin['password'];
+if ($connection->connect_error) {
+    die("Connection failed: " . $connection->connect_error);
+}
 
-        if(password_verify($password, $hash)){
-            session_start();
-            $_SESSION['email'] = $resultForAdmin['email'];
-            header("Location: admin.php"); 
-            exit;
-        } else {
-            echo 
-            "<script>
-                alert('Incorrect Password A');
-                window.location.href = 'main.php';
-            </script>";
-        }
+$stmt = $connection->prepare("SELECT email, password FROM admin WHERE email = ?");
+$stmt->bind_param("s", $email);
+$stmt->execute();
+$resultForAdmin = $stmt->get_result()->fetch_assoc();
 
+if ($resultForAdmin) {
+
+    $hash = $resultForAdmin['password'];
+
+    if (password_verify($password, $hash)) {
+        $_SESSION['email'] = $resultForAdmin['email'];
+        header("Location: admin.php");
+        exit;
+    } else {
+        echo "<script>
+            alert('Incorrect Password A');
+            window.location.href = 'main.php';
+        </script>";
+        exit;
     }
+}
 
-   
-    //user
-    if (!$resultForAdmin) { 
 
-        $stmt = $db->prepare("SELECT email, password, verifaction FROM users WHERE email = :email");
-        $stmt->bindValue(':email', $email, SQLITE3_TEXT);
-        $stmt->bindValue(':verifaction', $verifaction, SQLITE3_TEXT);
-        $result = $stmt->execute()->fetchArray(SQLITE3_ASSOC);
-        
-        if (!$result) { 
-            echo 
-            "<script>
-                alert('Incorrect email');
-                window.location.href = 'main.php';
-            </script>";
-            exit; 
-        }
-        $verifaction = $result['verifaction'];
-        $hash = $result['password'];
+$stmt = $connection->prepare("SELECT email, password, verifaction FROM users WHERE email = ?");
+$stmt->bind_param("s", $email);
+$stmt->execute();
+$result = $stmt->get_result()->fetch_assoc();
 
-        if(password_verify($password, $hash) && $verifaction === 1){
-            session_start();
-            $_SESSION['email'] = $result['email'];
-            echo 
-            "<script>
-                window.location.href = 'user.php';
-            </script>";
-        } else {
-            echo 
-            "<script>
-                alert('Incorrect Password Or account is not verified');
-                window.location.href = 'main.php';
-            </script>";
-        }
-    }
+if (!$result) {
+    echo "<script>
+        alert('Incorrect email');
+        window.location.href = 'main.php';
+    </script>";
+    exit;
+}
 
-    
+$hash = $result['password'];
+$verifaction = intval($result['verifaction']);
+
+if (password_verify($password, $hash) && $verifaction === 1) {
+
+    $_SESSION['email'] = $result['email'];
+
+    echo "<script>
+        window.location.href = 'user.php';
+    </script>";
+    exit;
+
+} else {
+    echo "<script>
+        alert('Incorrect Password Or account is not verified');
+        window.location.href = 'main.php';
+    </script>";
+    exit;
+}
+
 ?>

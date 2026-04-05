@@ -21,7 +21,6 @@ function checkPassword(){
 
 const displayInfo = document.getElementById("displayInfo");
 const innerBody = document.getElementById("boody");
-
 const userData = document.createElement("div");
 
 
@@ -109,4 +108,3 @@ changeInfo.addEventListener('click', async () => {
         changeOnAndOff = 0;
     }
 });
-

@@ -1,20 +1,38 @@
 <?php
-    session_start();
+session_start();
 
-    $db = new SQLite3('database.db');
-    $email = $_SESSION['email'];
+if (!isset($_SESSION['email'])) {
+    echo "Not logged in!";
+    exit;
+}
 
+$connection = new mysqli(
+    "sql202.infinityfree.com",   
+    "if0_41571960",              
+    "athEOCnHsx9DWn",            
+    "if0_41571960_database"     
+);
 
-    $stmt = $db->prepare("SELECT first, last, email, uin FROM users WHERE email = :email");
-    $stmt->bindValue(':email', $email, SQLITE3_TEXT);
-    $result = $stmt->execute()->fetchArray(SQLITE3_ASSOC);
+if ($connection->connect_error) {
+    die("Connection failed: " . $connection->connect_error);
+}
 
+$email = $_SESSION['email'];
 
-    $thing = $result['first'];
-    $thing1 = $result['last'];
-    $thing2 = $result['email'];
-    $thing3 = $result['uin'];
+$stmt = $connection->prepare("SELECT first, last, email, uin FROM users WHERE email = ?");
+$stmt->bind_param("s", $email);
+$stmt->execute();
+$result = $stmt->get_result()->fetch_assoc();
 
-    echo json_encode([$thing, $thing1, $thing2, $thing3]);
+if ($result) {
+    echo json_encode([
+        $result['first'],
+        $result['last'],
+        $result['email'],
+        $result['uin']
+    ]);
+} else {
+    echo json_encode(["error" => "User not found"]);
+}
 
 ?>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="advising.js" defer></script>
+</head>
+<body>
+
+    <h2>Advising</h2>
+    <button id="view">View Advising Records</button>
+    <button id="courses">View Courses From last Term</button>
+    <button id="currentTerm">View/Add Courses For Current Term</button>
+
+      <form action="advising.php" method="POST">
+        <label for="lastterm">Last Term</label>
+        <input type="text" name="lastterm" id="lastterm">
+        <br>
+         
+        <label for="lastgpa">Last GPA</label>
+        <input type="text" name="lastgpa" id="lastgpa">
+        <br>
+
+        <label for="curterm">Current Term</label>
+        <input type="text" name="curterm" id="curterm">
+        <br>
+       
+        <button type="submit">Submit</button>
+    </form>
+    <div id="boody">
+        
+           
+      </div>
+</body>
+</html>

@@ -1,42 +1,50 @@
 <?php
-try{
-        $first = $_POST["first"];
-        $last = $_POST["last"];
-        $email = $_POST["email"];
-        $uin = $_POST["uin"];
-        $password = $_POST["password"];
-        $hash = password_hash($password, PASSWORD_BCRYPT);
-        $code = rand(100000, 999999);
+$connection = new mysqli(
+    "sql202.infinityfree.com", 
+    "if0_41571960",             
+    "athEOCnHsx9DWn",           
+    "if0_41571960_database"     
+);
 
-        $db = new SQLite3('database.db');
+if ($connection->connect_error) {
+    die("Connection failed: " . $connection->connect_error);
+}
 
+$first = $_POST["first"];
+$last = $_POST["last"];
+$email = $_POST["email"];
+$uin = $_POST["uin"];
+$password = $_POST["password"];
 
-        $stmt = $db->prepare("INSERT INTO users (first, last, email, uin, password, verifaction) VALUES (:first, :last, :email, :uin, :password, :verifaction)");
-        $db->enableExceptions(true);
-        $stmt->bindValue(':first', $first, SQLITE3_TEXT);
-        $stmt->bindValue(':last', $last, SQLITE3_TEXT);
-        $stmt->bindValue(':email', $email, SQLITE3_TEXT);
-        $stmt->bindValue(':uin', $uin, SQLITE3_TEXT);
-        $stmt->bindValue(':password', $hash, SQLITE3_TEXT);
-        $stmt->bindValue(':verifaction', $code, SQLITE3_TEXT);
+$hash = password_hash($password, PASSWORD_BCRYPT);
+$code = rand(100000, 999999);
 
-        $stmt->execute();
+$stmt = $connection->prepare(
+    "INSERT INTO users (first, last, email, uin, password, verifaction)
+     VALUES (?, ?, ?, ?, ?, ?)"
+);
 
-        $to = $email;
-        $subject = $code;
-        $message = "The code is your $code";
-        $headers = "From: noreply@gmail.com";
+$stmt->bind_param("sssisi", $first, $last, $email, $uin, $hash, $code);
 
-        mail($to, $subject, $message, $headers);
+if ($stmt->execute()) {
 
+    $to = $email;
+    $subject = $code;
+    $message = "The code is your $code";
+    $headers = "From: noreply@gmail.com";
 
-        header("Location: verification.php");
-        exit;
-    }catch(SQLite3Exception $e){
-        echo "<script>
-        alert('Email already exists!');
+    mail($to, $subject, $message, $headers);
+
+    header("Location: verification.php");
+    exit;
+
+} else {
+    echo "<script>
+        alert('Email already exists or database error!');
         window.location.href = 'index.php';
-         </script>";
-    }
+    </script>";
+}
 
+$stmt->close();
+$connection->close();
 ?>
