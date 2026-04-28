@@ -1,4 +1,6 @@
 <?php
+    header("X-Frame-Options: DENY");
+header("Content-Security-Policy: frame-ancestors 'none';");
 session_start();
 
 $connection = new mysqli(

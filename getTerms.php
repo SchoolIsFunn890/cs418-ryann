@@ -1,4 +1,6 @@
 <?php
+    header("X-Frame-Options: DENY");
+header("Content-Security-Policy: frame-ancestors 'none';");
 session_start();
 
 if (!isset($_SESSION['email'])) {
@@ -20,7 +22,7 @@ if ($connection->connect_error) {
 $email = $_SESSION['email'];
 
 $stmt = $connection->prepare(
-    "SELECT date_submitted, term, status 
+    "SELECT date_submitted, term, status, message 
      FROM terms 
      WHERE email = ?"
 );

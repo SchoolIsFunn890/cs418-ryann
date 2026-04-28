@@ -1,4 +1,6 @@
 <?php
+header("X-Frame-Options: DENY");
+header("Content-Security-Policy: frame-ancestors 'none';");
 $connection = new mysqli(
     "sql202.infinityfree.com", 
     "if0_41571960",             

@@ -4,20 +4,25 @@ let uin;
 
 
 
-function checkPassword(){
+function checkPassword() {
     const password = document.getElementById("password").value;
     const confirm = document.getElementById("password_confirm").value;
 
-    console.log(password);
-        console.log(confirm);
+    const format = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+
+    if (!format.test(password)) {
+        alert("Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.");
+        return false;
+    }
 
     if (password !== confirm) {
         alert("Passwords do not match!");
-        return false;   
+        return false;
     }
 
-    return true;       
+    return true;
 }
+
 
 const displayInfo = document.getElementById("displayInfo");
 const innerBody = document.getElementById("boody");
@@ -27,6 +32,7 @@ const userData = document.createElement("div");
 userData.setAttribute("id", "userData");
 let disOnAndOff = 0;
 
+if(displayInfo){
 displayInfo.addEventListener('click', async () => {
     if(disOnAndOff == 0){
         await fetch("getUserData.php")
@@ -45,6 +51,7 @@ displayInfo.addEventListener('click', async () => {
         innerBody.removeChild(userData);
     }
 });
+
 
 
 const changeInfo = document.getElementById("changeInfo");
@@ -108,3 +115,4 @@ changeInfo.addEventListener('click', async () => {
         changeOnAndOff = 0;
     }
 });
+}

@@ -1,4 +1,6 @@
 <?php
+    header("X-Frame-Options: DENY");
+header("Content-Security-Policy: frame-ancestors 'none';");
 include "2fa.html";
 
 $connection = new mysqli(

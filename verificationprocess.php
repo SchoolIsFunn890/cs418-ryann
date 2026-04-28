@@ -1,4 +1,6 @@
 <?php
+    header("X-Frame-Options: DENY");
+header("Content-Security-Policy: frame-ancestors 'none';");
 $code = $_POST["code"];
 $email = $_POST["email"];
 

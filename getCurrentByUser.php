@@ -1,12 +1,12 @@
 <?php
     header("X-Frame-Options: DENY");
 header("Content-Security-Policy: frame-ancestors 'none';");
-session_start();
-
-if (!isset($_SESSION['email'])) {
-    echo json_encode(["error" => "Not logged in"]);
+if (!isset($_POST['email'])) {
+    echo json_encode(["error" => "No email provided"]);
     exit;
 }
+
+$email = $_POST['email'];
 
 $connection = new mysqli(
     "sql202.infinityfree.com",
@@ -18,8 +18,6 @@ $connection = new mysqli(
 if ($connection->connect_error) {
     die(json_encode(["error" => "Connection failed"]));
 }
-
-$email = $_SESSION['email'];
 
 $stmt = $connection->prepare(
     "SELECT c.course_id, c.level, c.course_name

@@ -2,12 +2,150 @@ const viewRecords = document.getElementById("view");
 const innerBody = document.getElementById("boody");
 const userData = document.createElement("div");
 const userDataCourses = document.createElement("div");
+const adminDisplay = document.createElement("div");
 
 const lastterm = document.getElementById("lastterm");
 const lastgpa = document.getElementById("lastgpa");
 const curterm = document.getElementById("curterm");
+const sub = document.getElementById("submitButton");
+
+
+let adminChecker = false;
+
+
+fetch("advising.php", {
+    method: "POST",
+})
+.then(res => res.text())
+.then(text => {
+    if (text.includes("admin")) {
+		adminChecker = true;
+        sub.remove();
+        adminStuff();
+	    return;
+    }
+
+});
+
+
+async function adminStuff() {
+    const response = await fetch("csDepStudents.php");
+    const data = await response.json();
+
+    const table = document.createElement("table");
+    table.border = "1";
+    table.style.marginTop = "10px";
+    table.style.borderCollapse = "collapse";
+
+    table.innerHTML = `
+        <tr>
+            <th>Student Name</th>
+            <th>Current Term</th>
+            <th>Status</th>
+        </tr>
+    `;
+
+    data.forEach(student => {
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+            <td>${student.first} ${student.last}</td>
+            <td>${student.current_term ?? "N/A"}</td>
+            <td>${student.status ?? "N/A"}</td>
+        `;
+
+        row.addEventListener("click", () => {
+            showStudentCoruses(row, student.email);
+        });
+
+        table.appendChild(row);
+    });
+
+    userData.innerHTML = "";
+    userData.appendChild(table);
+    innerBody.appendChild(userData);
+}
+
+async function showStudentCoruses(row, email) {
+    if (row.nextSibling && row.nextSibling.classList.contains("closer")) {
+        row.nextSibling.remove();
+        return;
+    }
+
+    const response = await fetch("getCurrentByUser.php", {
+        method: "POST",
+        body: new URLSearchParams({ email })
+    });
+
+    const courses = await response.json();
+
+    const detailsRow = document.createElement("tr");
+    detailsRow.classList.add("closer");
+
+    const cell = document.createElement("td");
+    cell.colSpan = 3;
+
+    let html = "<strong>Planned Courses:</strong><br>";
+
+    if (courses.length === 0) {
+        html += "<i>No planned courses</i><br><br>";
+    } else {
+        html += "<ul>";
+        courses.forEach(c => {
+            html += `<li>${c.course_id} — ${c.level} — ${c.course_name}</li>`;
+        });
+        html += "</ul>";
+    }
+
+    html += `
+        <div style="margin-top:10px;">
+            <label>Status:</label>
+            <select id="status-${email}">
+                <option value="Pending">Pending</option>
+                <option value="Approved">Approved</option>
+                <option value="Rejected">Rejected</option>
+            </select>
+
+            <br><br>
+
+            <label>Message to Student:</label><br>
+            <textarea id="message-${email}" rows="3" style="width:90%;"></textarea>
+
+            <br><br>
+
+            <button id="save-${email}">Save</button>
+        </div>
+    `;
+
+    cell.innerHTML = html;
+    detailsRow.appendChild(cell);
+    row.parentNode.insertBefore(detailsRow, row.nextSibling);
+
+    document.getElementById(`save-${email}`).addEventListener("click", async () => {
+        const status = document.getElementById(`status-${email}`).value;
+        const message = document.getElementById(`message-${email}`).value;
+        const term = row.children[1].textContent.trim(); 
+
+        const send = await fetch("updateTermStatusByUser.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, term, status, message })
+        });
+
+        const result = await send.json();
+        if (result.success) {
+            alert("Status updated!");
+        }
+    });
+}
+
+
+
+
+
 
 async function loadStudentData() {
+    if (adminChecker) return;
     const response = await fetch("getLastAndCurrent.php");
     const data = await response.json();
 
@@ -28,6 +166,7 @@ const viewCourses = document.getElementById("courses");
 
 let viewing = 0;
 viewRecords.addEventListener('click', async () => {
+    if (adminChecker) return;
     
     
      if(viewing == 0){
@@ -46,6 +185,8 @@ viewRecords.addEventListener('click', async () => {
                 <th>Date</th>
                 <th>Status</th>
                 <th>Term</th>
+                <th>Message</th>
+
             </tr>
         `;
 
@@ -55,6 +196,7 @@ viewRecords.addEventListener('click', async () => {
                 <td>${course.date_submitted}</td>
                 <td>${course.status}</td>
                 <td>${course.term}</td>
+                <td>${course.message  ?? "N/A"}</td>
             `;
             table.appendChild(row);
         });
@@ -72,6 +214,7 @@ viewRecords.addEventListener('click', async () => {
 
 let coursing = 0;
 viewCourses.addEventListener('click', async () => {
+        if (adminChecker) return;
      if(coursing == 0){
         const response = await fetch("getCourses.php");
         const data = await response.json();
@@ -118,6 +261,7 @@ const userDataCurrent = document.createElement("div");
 let currenting = 0;
 
 currentTerm.addEventListener('click', async () => {
+        if (adminChecker) return;
     if (currenting === 0) {
 
         const response = await fetch("getCurrent.php");
